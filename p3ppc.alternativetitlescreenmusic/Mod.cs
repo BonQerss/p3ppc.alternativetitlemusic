@@ -127,16 +127,6 @@ namespace p3ppc.alternativetitlescreenmusic
                 tracks.Add(77); // placeholder alternative title
             }
 
-            if (_configuration.CustomBgmIds?.Any() == true)
-            {
-                foreach (var id in _configuration.CustomBgmIds)
-                    tracks.Add((ushort)id);
-
-                ///
-                // Experimental adding your own custom music track, maybe?
-                ///
-            }
-
             _bgmTracks = tracks.ToList();
 
             _logger.WriteLine($"[BGM Randomizer] Initialized with {_bgmTracks.Count} BGM tracks");

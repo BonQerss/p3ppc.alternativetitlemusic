@@ -40,10 +40,6 @@ namespace p3ppc.alternativetitlescreenmusic.Configuration
         [DefaultValue(true)]
         public bool AlwaysIncludeOriginal { get; set; } = true;
 
-        [DisplayName("Custom BGM IDs")]
-        [Description("Custom BGM track IDs to include (in decimal format, e.g. 115 for 0x73)")]
-        public List<int> CustomBgmIds { get; set; } = new List<int>();
-
         [DisplayName("Debug Logging")]
         [Description("Enable detailed logging for debugging purposes.")]
         [DefaultValue(false)]
