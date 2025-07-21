@@ -12,35 +12,29 @@ namespace p3ppc.alternativetitlescreenmusic
     public unsafe class Mod : ModBase
     {
         private delegate long BgmPlayDelegate(ushort bgmId, ulong unused, byte delta, IntPtr adxName);
-
         private delegate void TitleScreenDelegate(IntPtr taskPtr);
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate TitleTaskArgs* GetTaskArgsDelegate(IntPtr task);
-
-
-        private struct TaskStruct
-        {
-        }
 
         [StructLayout(LayoutKind.Explicit)]
         private struct TitleTaskArgs
         {
-            [FieldOffset(0x00)] public int Step;            
-            [FieldOffset(0x04)] public int Flags;            
-            [FieldOffset(0x08)] public float Timer;          
-            [FieldOffset(0x0C)] public int UnkC;             
-            [FieldOffset(0x10)] public int Selection;        
-            [FieldOffset(0x14)] public int InputMode;        
-            [FieldOffset(0x18)] public int Toggle;           
-            [FieldOffset(0x1C)] public int SelectionTimer;   
-            [FieldOffset(0x20)] public int Result;           
-            [FieldOffset(0x24)] public int SomeFlag;         
-            [FieldOffset(0x28)] public int Arg10;            
-            [FieldOffset(0x2C)] public int Arg11;            
-            [FieldOffset(0x30)] public int Arg12;            
-                                                             
-            [FieldOffset(0x50)] public IntPtr FilePtr;       
-            [FieldOffset(0x58)] public IntPtr SpritePtr;     
+            [FieldOffset(0x00)] public int Step;
+            [FieldOffset(0x04)] public int Flags;
+            [FieldOffset(0x08)] public float Timer;
+            [FieldOffset(0x0C)] public int UnkC;
+            [FieldOffset(0x10)] public int Selection;
+            [FieldOffset(0x14)] public int InputMode;
+            [FieldOffset(0x18)] public int Toggle;
+            [FieldOffset(0x1C)] public int SelectionTimer;
+            [FieldOffset(0x20)] public int Result;
+            [FieldOffset(0x24)] public int SomeFlag;
+            [FieldOffset(0x28)] public int Arg10;
+            [FieldOffset(0x2C)] public int Arg11;
+            [FieldOffset(0x30)] public int Arg12;
+            [FieldOffset(0x50)] public IntPtr FilePtr;
+            [FieldOffset(0x58)] public IntPtr SpritePtr;
         }
 
         private readonly IModLoader _modLoader;
@@ -75,7 +69,6 @@ namespace p3ppc.alternativetitlescreenmusic
             _modConfig = context.ModConfig;
 
             Utils.Initialise(_logger, _configuration, _modLoader);
-
             InitializeBgmTracks();
 
             Utils.SigScan("E8 ?? ?? ?? ?? 83 78 ?? 00 74 ??", "Task::GetArgs", address =>
@@ -116,12 +109,12 @@ namespace p3ppc.alternativetitlescreenmusic
             var tracks = new HashSet<ushort>();
 
             if (_configuration.AlwaysIncludeOriginal)
-                tracks.Add(115); 
+                tracks.Add(115);
 
             if (_configuration.IncludeAlternativeTracks)
             {
-                tracks.Add(79); 
-                tracks.Add(77); 
+                tracks.Add(79);
+                tracks.Add(77);
             }
 
             if (_configuration.CustomBgmIds?.Any() == true)
@@ -156,94 +149,53 @@ namespace p3ppc.alternativetitlescreenmusic
 
         private void TitleScreenHandler(IntPtr taskPtr)
         {
-            try
+            if (taskPtr == IntPtr.Zero || _getTaskArgs == null)
             {
-                if (taskPtr == IntPtr.Zero || _getTaskArgs == null)
-                {
-                    _titleScreenHook.OriginalFunction(taskPtr);
-                    return;
-                }
-
-                TitleTaskArgs* args;
-                try
-                {
-                    args = _getTaskArgs(taskPtr);
-                    if ((nint)args < 0x10000 || args == null)
-                    {
-                        _titleScreenHook.OriginalFunction(taskPtr);
-                        return;
-                    }
-                }
-                catch
-                {
-                    _titleScreenHook.OriginalFunction(taskPtr);
-                    return;
-                }
-
-                int currentStep;
-                try
-                {
-                    currentStep = args->Step;
-                }
-                catch
-                {
-                    _titleScreenHook.OriginalFunction(taskPtr);
-                    return;
-                }
-
-                if (currentStep == 3)
-                {
-                    IntPtr spritePtr = args->SpritePtr;
-                    if (spritePtr == IntPtr.Zero || _checkSprite == null || _checkSprite(spritePtr) == 0)
-                    {
-                        _titleScreenHook.OriginalFunction(taskPtr);
-                        return;
-                    }
-
-                    args->Step = 4;
-
-                    if (!_hasPlayedCustomBgm)
-                    {
-                        ushort selectedBgm = SelectBgm();
-                        _logger.WriteLine($"[BGM Randomizer] Playing custom BGM {selectedBgm} (0x{selectedBgm:X2})");
-
-                        try
-                        {
-                            _bgmPlay?.Invoke(selectedBgm, 0, 0, IntPtr.Zero);
-                            _hasPlayedCustomBgm = true;
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.WriteLine($"[BGM Randomizer] Error playing BGM: {ex.Message}");
-                            try { _bgmPlay?.Invoke(115, 0, 0, IntPtr.Zero); } catch { }
-                        }
-                    }
-
-                    try
-                    {
-                        IntPtr filePtr = args->FilePtr;
-                        if (filePtr != IntPtr.Zero && _fileCleanup != null)
-                        {
-                            _fileCleanup(filePtr);
-                            args->FilePtr = IntPtr.Zero;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.WriteLine($"[BGM Randomizer] File cleanup exception: {ex.Message}");
-                    }
-                }
-
-                if (currentStep < 3 || currentStep > 7)
-                    _hasPlayedCustomBgm = false;
-
                 _titleScreenHook.OriginalFunction(taskPtr);
+                return;
             }
-            catch (Exception ex)
+
+            TitleTaskArgs* args = _getTaskArgs(taskPtr);
+            if ((nint)args < 0x10000 || args == null)
             {
-                _logger.WriteLine($"[BGM Randomizer] Handler exception: {ex}");
-                try { _titleScreenHook.OriginalFunction(taskPtr); } catch { }
+                _titleScreenHook.OriginalFunction(taskPtr);
+                return;
             }
+
+            int currentStep = args->Step;
+
+            if (currentStep == 3)
+            {
+                IntPtr spritePtr = args->SpritePtr;
+                if (spritePtr == IntPtr.Zero || _checkSprite == null || _checkSprite(spritePtr) == 0)
+                {
+                    _titleScreenHook.OriginalFunction(taskPtr);
+                    return;
+                }
+
+                args->Step = 4;
+
+                if (!_hasPlayedCustomBgm)
+                {
+                    ushort selectedBgm = SelectBgm();
+                    _logger.WriteLine($"[BGM Randomizer] Playing custom BGM {selectedBgm} (0x{selectedBgm:X2})");
+
+                    _bgmPlay?.Invoke(selectedBgm, 0, 0, IntPtr.Zero);
+                    _hasPlayedCustomBgm = true;
+                }
+
+                IntPtr filePtr = args->FilePtr;
+                if (filePtr != IntPtr.Zero && _fileCleanup != null)
+                {
+                    _fileCleanup(filePtr);
+                    args->FilePtr = IntPtr.Zero;
+                }
+            }
+
+            if (currentStep < 3 || currentStep > 7)
+                _hasPlayedCustomBgm = false;
+
+            _titleScreenHook.OriginalFunction(taskPtr);
         }
 
         #region Standard Overrides
