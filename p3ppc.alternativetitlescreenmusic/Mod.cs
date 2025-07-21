@@ -11,13 +11,13 @@ namespace p3ppc.alternativetitlescreenmusic
 {
     public unsafe class Mod : ModBase
     {
-        private delegate long BgmPlayDelegate(ushort bgmId, ulong unused, byte delta, IntPtr adxName);
+        private delegate long BgmPlayDelegate(ushort bgmId, ulong unused, byte delta, IntPtr adxName); // adx name is speculation, i've seen mods that are able to load whole files that aren't numbered
         private delegate void TitleScreenDelegate(IntPtr taskPtr);
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] // necessary for some reason
         private delegate TitleTaskArgs* GetTaskArgsDelegate(IntPtr task);
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Explicit)] // also necessary for some reason
         private struct TitleTaskArgs
         {
             [FieldOffset(0x00)] public int Step;
@@ -33,7 +33,7 @@ namespace p3ppc.alternativetitlescreenmusic
             [FieldOffset(0x28)] public int Arg10;
             [FieldOffset(0x2C)] public int Arg11;
             [FieldOffset(0x30)] public int Arg12;
-            [FieldOffset(0x50)] public IntPtr FilePtr;
+            [FieldOffset(0x50)] public IntPtr FilePtr; // only essential ones i can verify are these two
             [FieldOffset(0x58)] public IntPtr SpritePtr;
         }
 
@@ -71,6 +71,16 @@ namespace p3ppc.alternativetitlescreenmusic
             Utils.Initialise(_logger, _configuration, _modLoader);
             InitializeBgmTracks();
 
+            //
+            // No idea if I even need all of these, the only essential ones are the first three I believe, the other 2
+            // were also called in the same case, maybe you can go without them? i'm not smart enough for that
+            //
+
+            //
+            // GetGlobalAddress is used to find functions when they're called in code, not the function itself
+            // credit to AnimatedSwine for including that in the Utils.cs, massive life saver
+            //
+
             Utils.SigScan("E8 ?? ?? ?? ?? 83 78 ?? 00 74 ??", "Task::GetArgs", address =>
             {
                 var funcAddress = Utils.GetGlobalAddress((nint)(address + 1));
@@ -106,21 +116,25 @@ namespace p3ppc.alternativetitlescreenmusic
 
         private void InitializeBgmTracks()
         {
-            var tracks = new HashSet<ushort>();
+            var tracks = new HashSet<ushort>(); // basically just makes a list
 
             if (_configuration.AlwaysIncludeOriginal)
-                tracks.Add(115);
+                tracks.Add(115); // default og track
 
             if (_configuration.IncludeAlternativeTracks)
             {
-                tracks.Add(79);
-                tracks.Add(77);
+                tracks.Add(79); // placeholder alternative titles
+                tracks.Add(77); // placeholder alternative title
             }
 
             if (_configuration.CustomBgmIds?.Any() == true)
             {
                 foreach (var id in _configuration.CustomBgmIds)
                     tracks.Add((ushort)id);
+
+                ///
+                // Experimental adding your own custom music track, maybe?
+                ///
             }
 
             _bgmTracks = tracks.ToList();
@@ -133,7 +147,7 @@ namespace p3ppc.alternativetitlescreenmusic
         private ushort SelectBgm()
         {
             if (_bgmTracks.Count == 0)
-                return 115;
+                return 115; 
 
             if (_configuration.RandomizeBgm)
             {
@@ -152,8 +166,12 @@ namespace p3ppc.alternativetitlescreenmusic
             if (taskPtr == IntPtr.Zero || _getTaskArgs == null)
             {
                 _titleScreenHook.OriginalFunction(taskPtr);
-                return;
+                return; 
             }
+
+            //
+            // Fallback code in case something fails
+            //
 
             TitleTaskArgs* args = _getTaskArgs(taskPtr);
             if ((nint)args < 0x10000 || args == null)
@@ -193,9 +211,11 @@ namespace p3ppc.alternativetitlescreenmusic
             }
 
             if (currentStep < 3 || currentStep > 7)
+            {
                 _hasPlayedCustomBgm = false;
+            }
 
-            _titleScreenHook.OriginalFunction(taskPtr);
+            _titleScreenHook.OriginalFunction(taskPtr); // run rest of code when done
         }
 
         #region Standard Overrides
