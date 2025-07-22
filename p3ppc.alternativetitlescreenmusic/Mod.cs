@@ -175,10 +175,10 @@ namespace p3ppc.alternativetitlescreenmusic
 
             if (currentStep == 3)
             {
-                IntPtr spritePtr = args->SpritePtr;
+                IntPtr spritePtr = args->SpritePtr; // needed to load title.bin assets
                 if (spritePtr == IntPtr.Zero || _checkSprite == null || _checkSprite(spritePtr) == 0)
                 {
-                    _titleScreenHook.OriginalFunction(taskPtr);
+                    _titleScreenHook.OriginalFunction(taskPtr); 
                     return;
                 }
 
