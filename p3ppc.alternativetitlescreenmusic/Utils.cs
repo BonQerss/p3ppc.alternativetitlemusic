@@ -15,17 +15,17 @@ namespace p3ppc.alternativetitlescreenmusic
 
         internal static void Log(string message)
         {
-            _logger.WriteLine($"[Kotone Cutscenes Project] {message}");
+            _logger.WriteLine($"[Alternate Menu Themes] {message}");
         }
 
         internal static void LogError(string message, Exception e)
         {
-            _logger.WriteLine($"[Kotone Cutscenes Project] {message}: {e.Message}", System.Drawing.Color.Red);
+            _logger.WriteLine($"[Alternate Menu Themes] {message}: {e.Message}", System.Drawing.Color.Red);
         }
 
         internal static void LogError(string message)
         {
-            _logger.WriteLine($"[Kotone Cutscenes Project] {message}", System.Drawing.Color.Red);
+            _logger.WriteLine($"[Alternate Menu Themes] {message}", System.Drawing.Color.Red);
         }
 
         internal static void SigScan(string pattern, string name, Action<nint> action)

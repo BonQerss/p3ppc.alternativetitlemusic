@@ -85,32 +85,32 @@ namespace p3ppc.alternativetitlescreenmusic
             {
                 var funcAddress = Utils.GetGlobalAddress((nint)(address + 1));
                 _getTaskArgs = _hooks.CreateWrapper<GetTaskArgsDelegate>((long)funcAddress, out _);
-                _logger.WriteLine($"[BGM Randomizer] Found Task::GetArgs at 0x{funcAddress:X}");
+                _logger.WriteLine($"Found Task::GetArgs at 0x{funcAddress:X}");
             });
 
             Utils.SigScan("40 53 41 54 41 56 41 57", "TitleScreen", address =>
             {
                 _titleScreenHook = _hooks.CreateHook<TitleScreenDelegate>(TitleScreenHandler, address).Activate();
-                _logger.WriteLine($"[BGM Randomizer] Hooked TitleScreen at 0x{address:X}");
+                _logger.WriteLine($"Hooked TitleScreen at 0x{address:X}");
             });
 
             Utils.SigScan("E8 ?? ?? ?? ?? BA 0F 00 00 00 8D 4A ??", "BGM Play Thunk", address =>
             {
                 var funcAddress = Utils.GetGlobalAddress((nint)(address + 1));
                 _bgmPlay = _hooks.CreateWrapper<BgmPlayDelegate>((long)funcAddress, out _);
-                _logger.WriteLine($"[BGM Randomizer] Found BGM Play function at 0x{funcAddress:X}");
+                _logger.WriteLine($"Found BGM Play function at 0x{funcAddress:X}");
             });
 
             Utils.SigScan("48 89 5C 24 ?? 57 48 83 EC 30 48 8B 05 ?? ?? ?? ?? 48 31 E0 48 89 44 24 ?? 48 89 CB 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8B 4B ??", "CheckSprite", address =>
             {
                 _checkSprite = _hooks.CreateWrapper<CheckSpriteDelegate>(address, out _);
-                _logger.WriteLine($"[BGM Randomizer] Found CheckSprite function at 0x{address:X}");
+                _logger.WriteLine($"Found CheckSprite function at 0x{address:X}");
             });
 
             Utils.SigScan("40 53 48 83 EC 20 48 89 CB 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 85 DB 0F 84 ?? ?? ?? ?? 83 7B ?? 00", "File Cleanup", address =>
             {
                 _fileCleanup = _hooks.CreateWrapper<FileCleanupDelegate>(address, out _);
-                _logger.WriteLine($"[BGM Randomizer] Found File Cleanup function at 0x{address:X}");
+                _logger.WriteLine($"Found File Cleanup function at 0x{address:X}");
             });
         }
 
@@ -129,9 +129,9 @@ namespace p3ppc.alternativetitlescreenmusic
 
             _bgmTracks = tracks.ToList();
 
-            _logger.WriteLine($"[BGM Randomizer] Initialized with {_bgmTracks.Count} BGM tracks");
+            _logger.WriteLine($"Initialized with {_bgmTracks.Count} BGM tracks");
             foreach (var track in _bgmTracks)
-                _logger.WriteLine($"[BGM Randomizer] Track ID: {track} (0x{track:X2})");
+                _logger.WriteLine($"Track ID: {track} (0x{track:X2})");
         }
 
         private ushort SelectBgm()
@@ -186,7 +186,7 @@ namespace p3ppc.alternativetitlescreenmusic
                 if (!_hasPlayedCustomBgm)
                 {
                     ushort selectedBgm = SelectBgm();
-                    _logger.WriteLine($"[BGM Randomizer] Playing custom BGM {selectedBgm} (0x{selectedBgm:X2})");
+                    _logger.WriteLine($"Playing custom BGM {selectedBgm} (0x{selectedBgm:X2})");
 
                     _bgmPlay?.Invoke(selectedBgm, 0, 0, IntPtr.Zero);
                     _hasPlayedCustomBgm = true;
