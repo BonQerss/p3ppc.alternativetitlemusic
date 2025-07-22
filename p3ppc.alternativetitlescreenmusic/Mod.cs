@@ -123,8 +123,8 @@ namespace p3ppc.alternativetitlescreenmusic
 
             if (_configuration.IncludeAlternativeTracks)
             {
-                tracks.Add(79); // placeholder alternative titles
-                tracks.Add(77); // placeholder alternative title
+                tracks.Add(71); // placeholder alternative titles
+                tracks.Add(3914); // placeholder alternative title
             }
 
             _bgmTracks = tracks.ToList();

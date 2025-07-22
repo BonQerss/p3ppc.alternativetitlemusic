@@ -31,7 +31,7 @@ namespace p3ppc.alternativetitlescreenmusic.Configuration
         public bool RandomizeBgm { get; set; } = true;
 
         [DisplayName("Include Alternative Tracks")]
-        [Description("Include preset alternative BGM tracks like battle themes, exploration music, etc.")]
+        [Description("Include preset alternative BGM tracks.")]
         [DefaultValue(true)]
         public bool IncludeAlternativeTracks { get; set; } = true;
 
