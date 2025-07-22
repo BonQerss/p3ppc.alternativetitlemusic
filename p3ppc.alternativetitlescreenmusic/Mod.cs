@@ -123,8 +123,9 @@ namespace p3ppc.alternativetitlescreenmusic
 
             if (_configuration.IncludeAlternativeTracks)
             {
-                tracks.Add(71); // placeholder alternative titles
-                tracks.Add(3914); // placeholder alternative title
+                tracks.Add(71); // the voice someone calls
+                tracks.Add(3914); // brand new days reload
+                // here's where i would put i will protect you - reload - IF I HAD IT
             }
 
             _bgmTracks = tracks.ToList();
@@ -145,13 +146,13 @@ namespace p3ppc.alternativetitlescreenmusic
             }
             else
             {
-                _bgmCount = (_bgmCount + 1) % _bgmTracks.Count;
+                _bgmCount = (_bgmCount + 1) % _bgmTracks.Count; // bob bless the modulo operator
             }
 
             return _bgmTracks[_bgmCount];
         }
 
-        private void TitleScreenHandler(IntPtr taskPtr)
+        private void TitleScreenHandler(IntPtr taskPtr) // more research needs to be done here, legit had no idea what i was doing figuring out the args
         {
             if (taskPtr == IntPtr.Zero || _getTaskArgs == null)
             {
@@ -188,7 +189,7 @@ namespace p3ppc.alternativetitlescreenmusic
                     ushort selectedBgm = SelectBgm();
                     _logger.WriteLine($"Playing custom BGM {selectedBgm} (0x{selectedBgm:X2})");
 
-                    _bgmPlay?.Invoke(selectedBgm, 0, 0, IntPtr.Zero);
+                    _bgmPlay(selectedBgm, 0, 0, IntPtr.Zero);
                     _hasPlayedCustomBgm = true;
                 }
 
